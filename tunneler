@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# A simple bash script to repeatedly recreate reverse ssh tunnels
+#
+# Configure the 4 variables at the top of this script as follows:
+#
+# REVERSE_TUNNEL_HOST_ADDRESS
+#   This is the IP address of your reverse tunnel receiver host. The receiver
+#   must be reachable from the remote host that runs this `tunneler` script.
+#
+# REVERSE_TUNNEL_HOST_USER
+#   This is the user name on the reverse tunnel receiver host that this local
+#   host will use to connect the tunnel (and whose private key credential is
+#   provided in `REVERSE_TUNNEL_HOST_PRIVATE_KEY_FILE` below.
+#
+# REVERSE_TUNNEL_HOST_PORT
+#   This is the port number on the reverse tunnel receiver's loopback
+#   interface where you will be able to connect "forwardly" to the reverse
+#   tunnel. E.g., if yoou specify 2021 here, then on the reverse tunnel
+#   receiver host you would use `ssh 127.0.0.1 -port 2201` to connect.
+#
+# REVERSE_TUNNEL_HOST_PRIVATE_KEY_FILE
+#   This is the ssh-authorized private key file for REVERSE_TUNNEL_HOST_USER
+#   on REVERSE_TUNNEL_HOST_ADDRESS. This script will use this credential to
+#   establish the reverse tunnel to this machine.
+#
+# Written by Glen Darling, December 2022
+
+# Edit this variables to suite your own situation
+REVERSE_TUNNEL_HOST_ADDRESS=192.168.123.8
+REVERSE_TUNNEL_HOST_USER=pi
+REVERSE_TUNNEL_HOST_PORT=2201
+REVERSE_TUNNEL_HOST_PRIVATE_KEY_FILE=/home/pi/.ssh/id_rsa
+
+# Loop forever trying to keep this reverse tunnel always connected
+while true
+do
+  ssh -i $REVERSE_TUNNEL_HOST_PRIVATE_KEY_FILE $REVERSE_TUNNEL_HOST_USER@$REVERSE_TUNNEL_HOST_ADDRESS -N -R $REVERSE_TUNNEL_HOST_PORT:127.0.0.1:22
+  sleep 15
+done
+
