@@ -2,8 +2,8 @@
 
 ### Simplifying reverse SSH tunneling
 
-A reverse tunnel enables access to machines behind firewalls by changing the
-which end starts the connection. Machines behind firewalls are alsmost always
+A reverse tunnel enables access to machines behind firewalls (without any port forwarding) by changing
+which end of the tunnel initiates the connection. This works because machines behind firewalls are almost always
 enabled to make outbound connections. For example, I have a subnet inside my
 home LAN, created by a router/firewall. Machines in the subnet can reach
 machines in my LAN and outside my home, but machines in my LAN cannot reach
@@ -12,11 +12,13 @@ host in my LAN, I can have any of the machines in my subnet create reverse
 tunnels out to that host in my LAN. Once they have done that I can ssh into
 my reverse tunnel host and from there ssh to the host in the subnet through
 the reverse tunnel (even though my reverse tunnel host cannot ping or connect
-to the subnet host.
+to the subnet host. Maybe a diagram will make this clearer:
 
-![reverse-tunnel](https://raw.githubusercontent.com/MegaMosquito/monitor/main/reverse-tunnel.png)
+![reverse-tunnel](https://github.com/MegaMosquito/tunneler/raw/main/reverse-tunnel.png)
 
-Blah, blah, describe the diagram...
+When a host like **Computer Y** above needs to connect to **Computer X**, it's a problem because X is likely at an unknown NAT address and the firewall between them is preventing access. One could open a port on the router, and forward it to X, but that's often not desirable. Instead, X can create a "reverse ssh tunnel" to Y, and once it is established, then Y can connect to X ("forwardly") through the reverse tunnel. The reverse tunnel terminates on the Y side at a port (2201 above) attached to its loopback interface (i.e., `localhost` or `127.0.0.1`). A user on Y could then `ssh user@localhost -p 2201`, with the appropriate credentials for that **user** on host X. Note that any port number (preferably in the range 1024 through 49151, inclusive) can be used (2201 is just an example).
+
+I find setting up reverse tunnels to be error prone, so that's why I created this repo (to make it easier for me). I hope it helps you too.
 
 ### Configuring a reverse tunnel receiver
 
@@ -108,7 +110,19 @@ script starts up everything again.
 
 ### Using the reverse tunnel
 
-Blah, blah...
+To use the reverse tunnel you need to have the credentials for a user on the remote host. Using the diagram above, a user on Y would require a user name and user credentials to ssh into X. Assuming port 2201 from the diagram above, the user on Y could then use:
+
+```
+ssh user@localhost:2201
+```
+
+(and then provide the password for `user` on X) in order to connect to X as `user`.
+
+Alternatively, to use an ssh key instead of a password, the user on Y would need an authorized private key for the `user` and could instead use: 
+
+```
+ssh -i privatekey user@localhost:2201
+```
 
 ### Author
 
